@@ -27,33 +27,35 @@ class Macros:
 
     def buy(self):
         while True:
-            # print("НАЧАЛО ЦИКЛА")
-            pag.moveTo(self.position_1[0], self.position_1[1], duration=self.delay / 4)  # переместить мышь на позицию 1
-            # print("Курсор перемещён в 1 позицию")
+            print("НАЧАЛО ЦИКЛА")
+            if pag.screenshot().getpixel((2477, 204)) == (177, 185, 189):
+                print("Появился новый лот")
+                pag.moveTo(self.position_2[0], self.position_2[1], duration=self.delay)  # переместить мышь на позицию 2
+                print("Курсор перемещён во 2 позицию")
+                pag.PAUSE = self.click_delay  # задержка в нажатии
+                pag.mouseDown(button='left')  # нажать на левую кнопку мыши
+                print("Левая кнопка мыши нажата")
+                pag.PAUSE = self.hold_time  # задержка в отжатии
+                pag.mouseUp(button='left')  # отпустить левую кнопку мыши
+                print("Левая кнопка мыши отпущена")
+                pag.PAUSE = self.delay  # задержка перед нажатием клавиши "y"
+                pag.press('y')  # нажать на клавишу "y"
+                print("Нажата кнопка Y")
+            pag.moveTo(self.position_1[0], self.position_1[1])  # переместить мышь на позицию 1
+            print("Курсор перемещён в 1 позицию")
             pag.mouseDown(button='left')  # нажать на левую кнопку мыши
-            # print("Левая кнопка мыши нажата")
+            print("Левая кнопка мыши нажата")
             pag.PAUSE = self.hold_time  # задержка в отжатии
             pag.mouseUp(button='left')  # отпустить левую кнопку мыши
-            # print("Левая кнопка мыши отпущена")
+            print("Левая кнопка мыши отпущена")
             pag.PAUSE = self.click_delay  # задержка в нажатии
-            pag.moveTo(self.position_2[0], self.position_2[1], duration=self.delay)  # переместить мышь на позицию 2
-            # print("Курсор перемещён во 2 позицию")
-            pag.PAUSE = self.click_delay  # задержка в нажатии
-            pag.mouseDown(button='left')  # нажать на левую кнопку мыши
-            # print("Левая кнопка мыши нажата")
-            pag.PAUSE = self.hold_time  # задержка в отжатии
-            pag.mouseUp(button='left')  # отпустить левую кнопку мыши
-            # print("Левая кнопка мыши отпущена")
-            time.sleep(self.delay)  # задержка перед нажатием клавиши "y"
-            pag.press('y')  # нажать на клавишу "y"
-            # print("Нажата кнопка Y")
             if keyboard.is_pressed(self.work_key):
-                # print("Зажата рабочая кнопка")
+                print("Зажата рабочая кнопка")
                 pag.PAUSE = 2
-                # print("Зажата рабочая кнопка уже в течение 2 секунд")
+                print("Зажата рабочая кнопка уже в течение 2 секунд")
                 if keyboard.is_pressed(self.work_key):
                     pag.alert('Цикл остановлен.')
-                    # print("Команда остановки цикла")
+                    print("Команда остановки цикла")
                     return
 
 
