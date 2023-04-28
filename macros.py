@@ -24,9 +24,9 @@ class Macros:
         self.work()  # запуск основного метода
 
     def buy(self):
-        while keyboard.is_pressed(self.work_key):
-            # print(f"Кнопка {self.work_key} зажата")
-            pag.moveTo(self.position_1[0], self.position_1[1], duration=self.delay / 2)  # переместить мышь на позицию 1
+        while True:
+            # print(f"НАЧАЛО ЦИКЛА")
+            pag.moveTo(self.position_1[0], self.position_1[1], duration=self.delay / 4)  # переместить мышь на позицию 1
             # print("Курсор перемещён в 1 позицию")
             pag.mouseDown(button='left')  # нажать на левую кнопку мыши
             # print("Левая кнопка мыши нажата")
@@ -45,6 +45,11 @@ class Macros:
             time.sleep(self.delay)  # задержка перед нажатием клавиши "y"
             pag.press('y')  # нажать на клавишу "y"
             # print("Нажата кнопка Y")
+            if keyboard.is_pressed(self.work_key):
+                while keyboard.is_pressed(self.work_key):
+                    pag.alert('Цикл остановлен.')
+                    break
+                return
 
     def work(self):
         keyboard.wait(self.stop_key)
