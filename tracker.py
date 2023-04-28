@@ -41,8 +41,10 @@ class MousePosition(tk.Tk):
         self.after(100, self.update_position)
 
     def copy_color_to_clipboard(self):
-        color = self.color_label.cget("text").split()[-1]
-        pyperclip.copy(color)
+        hex_color = self.color_label.cget("text").split()[-1]
+        hex_string = hex_color.lstrip('#')
+        color = tuple(int(hex_string[i:i + 2], 16) for i in (0, 2, 4))
+        pyperclip.copy(str(color))
 
 
 if __name__ == "__main__":
