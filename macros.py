@@ -9,6 +9,7 @@ class Macros:
         # установка начальных координат
         self.position_1 = 1870, 165
         self.position_2 = 2350, 240
+        self.position_3 = 1585, 650
 
         self.delay = 0.4  # задержка в секундах между действиями
 
@@ -24,24 +25,27 @@ class Macros:
         pag.alert('Выход из макроса.')
         exit()
 
-    def update(self):
-        pag.moveTo(self.position_1[0], self.position_1[1])  # переместить мышь на позицию 1
-        print("Курсор перемещён в 1 позицию")
-        pag.mouseDown(button='left')  # нажать на левую кнопку мыши
-        print("Левая кнопка мыши нажата")
-        pag.PAUSE = self.hold_time  # задержка в отжатии
-        pag.mouseUp(button='left')  # отпустить левую кнопку мыши
-        print("Левая кнопка мыши отпущена")
-
-    def buy(self):
-        pag.moveTo(self.position_2[0], self.position_2[1], duration=self.delay)  # переместить мышь на позицию 2
-        print("Курсор перемещён во 2 позицию")
+    def click(self):
         pag.PAUSE = self.click_delay  # задержка в нажатии
         pag.mouseDown(button='left')  # нажать на левую кнопку мыши
         print("Левая кнопка мыши нажата")
         pag.PAUSE = self.hold_time  # задержка в отжатии
         pag.mouseUp(button='left')  # отпустить левую кнопку мыши
         print("Левая кнопка мыши отпущена")
+
+    def update(self):
+        pag.moveTo(self.position_1[0], self.position_1[1])  # переместить мышь на позицию 1
+        print("Курсор перемещён в 1 позицию")
+        self.click()
+
+    def buy(self, full=False):
+        pag.moveTo(self.position_2[0], self.position_2[1], duration=self.delay)  # переместить мышь на позицию 2
+        self.click()
+
+        if full:
+            pag.moveTo(self.position_3[0], self.position_3[1], duration=self.delay / 4)  # переместить мышь на позицию 3
+            self.click()
+
         pag.PAUSE = self.delay  # задержка перед нажатием клавиши "y"
         pag.press('y')  # нажать на клавишу "y"
         print("Нажата кнопка Y")
@@ -54,6 +58,7 @@ class Macros:
                 print("Появился новый лот")
                 self.buy()  # Покупается первый лот из списка
 
+            self.update()  # Обновим список лотов
             pag.PAUSE = self.click_delay  # задержка
 
             if keyboard.is_pressed(self.work_key):
