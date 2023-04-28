@@ -20,7 +20,7 @@ class MousePosition(tk.Tk):
         self.update_position()
 
         # Добавляем горячую клавишу для копирования цвета
-        keyboard.add_hotkey("ctrl+c", self.copy_color_to_clipboard())
+        keyboard.add_hotkey("ctrl+c", lambda: self.copy_color_to_clipboard())
 
     def update_position(self):
         x, y = pyautogui.position()
