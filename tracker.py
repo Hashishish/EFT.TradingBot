@@ -32,7 +32,7 @@ class MousePosition(tk.Tk):
         else:
             color = (0, 0, 0)  # При выходе за границы экрана возвращаем чёрный цвет
 
-        hex_color = f"#{color[0]:02x}{color[1]:02x}{color[2]:02x}"
+        hex_color = f"({color[0]},{color[1]},{color[2]})"
         self.color_label.config(text=f"Color: {hex_color}")
 
         # Заполняем квадратик цветом пикселя
