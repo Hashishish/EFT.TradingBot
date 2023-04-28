@@ -22,7 +22,11 @@ class MousePosition(tk.Tk):
         self.label.config(text=f"X: {x}, Y: {y}")
 
         # Получаем цвет пикселя под курсором
-        color = pyautogui.screenshot().getpixel((x, y))
+        if pyautogui.onScreen(x, y):
+            color = pyautogui.screenshot().getpixel((x, y))
+        else:
+            color = (0, 0, 0)  # При выходе за границы экрана возвращаем чёрный цвет
+
         hex_color = f"#{color[0]:02x}{color[1]:02x}{color[2]:02x}"
         self.color_label.config(text=f"Color: {hex_color}")
 
