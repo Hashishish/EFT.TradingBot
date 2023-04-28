@@ -1,4 +1,3 @@
-import time
 import pyautogui as pag
 import keyboard
 
@@ -8,11 +7,6 @@ pag.FAILSAFE = False  # НЕ ТРОГАТЬ!
 class Macros:
     def __init__(self):
         # Установка переменных
-        self.position_1 = 1870, 165  # Позиция с фильтром по цене
-        self.position_2 = 2350, 240  # Позиция с кнопкой купить
-        self.position_3 = 1585, 650  # Позиция с кнопкой "все"
-        self.lotPosition = 2307, 242  # Позиция с точкой для проверки лота
-
         self.work_key, self.stop_key = 'q', 'w'  # Клавиши управления
 
         self.delay = 0.2  # Базовая задержка в секундах
@@ -26,28 +20,31 @@ class Macros:
         exit()
 
     def click(self):
-        time.sleep(self.click_delay)  # Задержка в нажатии
+        pag.sleep(self.click_delay)  # Задержка в нажатии
         pag.mouseDown(button='left')  # Нажать на левую кнопку мыши
         print("Левая кнопка мыши нажата")
-        time.sleep(self.hold_time)  # Задержка в отжатии
+        pag.sleep(self.hold_time)  # Задержка в отжатии
         pag.mouseUp(button='left')  # Отпустить левую кнопку мыши
         print("Левая кнопка мыши отпущена")
 
     def update(self):
-        pag.moveTo(self.position_1[0], self.position_1[1])  # Переместить мышь на позицию 1
+        pag.moveTo(pag.locateCenterOnScreen('Images/Buttons/cost_button.png', confidence=0.8), duration=self.delay)
         print("Курсор перемещён в 1 позицию")
-        time.sleep(self.click_delay * 5)  # задержка в обновлении
+        pag.sleep(self.click_delay * 4)  # Задержка в обновлении
+        self.click()
+        pag.sleep(self.click_delay * 2)  # Задержка для обработки обновлённой информации
+
+    def buy(self, button_center, full=False):
+        pag.moveTo(button_center, duration=self.delay)  # Переместить мышь на позицию 2
         self.click()
 
-    def buy(self, full=False):
-        pag.moveTo(self.position_2[0], self.position_2[1], duration=self.delay)  # Переместить мышь на позицию 2
-        self.click()
+        pag.sleep(self.delay * 2)
 
         if full:
-            pag.moveTo(self.position_3[0], self.position_3[1], duration=self.delay)  # Переместить мышь на позицию 3
+            pag.moveTo(pag.locateCenterOnScreen('Images/Buttons/full_button.png', confidence=0.8), duration=self.delay)
             self.click()
 
-        time.sleep(self.delay / 2)  # Задержка перед нажатием клавиши "y"
+        pag.sleep(self.delay / 2)  # Задержка перед нажатием клавиши "y"
         pag.press('y')  # Нажать на клавишу "y"
         print("Нажата кнопка Y")
 
@@ -55,19 +52,19 @@ class Macros:
         while True:
             print("НАЧАЛО ЦИКЛА")
 
-            lot_color = pag.screenshot().getpixel(self.lotPosition)
-
             print("Обновление списка")
             self.update()  # Обновим список лотов
 
-            if pag.screenshot().getpixel(self.lotPosition) != lot_color:  # Проверка на наличие лота
-                print("Появился новый лот")
-                self.buy()  # Покупается первый лот из списка
+            button_center = pag.locateCenterOnScreen('Images/Buttons/buy_button.png', confidence=0.5)
+
+            if button_center:  # Проверка на наличие лота
+                print("Начинается покупка")
+                self.buy(button_center)  # Покупается лот из списка
 
             if keyboard.is_pressed(self.work_key):
                 print("Зажата рабочая кнопка")
-                time.sleep(0.5)  # Ожидание нажатия продолжительностью 0.5 секунд
-                print("Зажата рабочая кнопка уже в течение 0.5 секунд")
+                pag.sleep(0.1)  # Ожидание зажатия
+                print("Зажата рабочая кнопка")
 
                 if keyboard.is_pressed(self.work_key):
                     pag.alert('Цикл остановлен.')
