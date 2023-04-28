@@ -1,4 +1,3 @@
-import time
 import pyautogui as pag
 import keyboard
 
