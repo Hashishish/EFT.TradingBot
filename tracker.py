@@ -32,7 +32,7 @@ class MousePosition(tk.Tk):
         else:
             color = (0, 0, 0)  # При выходе за границы экрана возвращаем чёрный цвет
 
-        hex_color = f"({color[0]},{color[1]},{color[2]})"
+        hex_color = f"#{color[0]:02x}{color[1]:02x}{color[2]:02x}"
         self.color_label.config(text=f"Color: {hex_color}")
 
         # Заполняем квадратик цветом пикселя
@@ -41,8 +41,8 @@ class MousePosition(tk.Tk):
         self.after(100, self.update_position)
 
     def copy_color_to_clipboard(self):
-        hex_color = self.color_label.cget("text").split()[-1]
-        pyperclip.copy(hex_color)
+        color = self.color_label.cget("text").split()[-1]
+        pyperclip.copy(color)
 
 
 if __name__ == "__main__":
