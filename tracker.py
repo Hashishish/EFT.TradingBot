@@ -1,5 +1,7 @@
 import tkinter as tk
 import pyautogui
+import pyperclip
+import keyboard
 
 
 class MousePosition(tk.Tk):
@@ -16,6 +18,9 @@ class MousePosition(tk.Tk):
 
         # Запускаем функцию для обновления координат и цвета
         self.update_position()
+
+        # Добавляем горячую клавишу для копирования цвета
+        keyboard.add_hotkey("ctrl+c", self.copy_color_to_clipboard())
 
     def update_position(self):
         x, y = pyautogui.position()
@@ -34,6 +39,10 @@ class MousePosition(tk.Tk):
         self.color_square.create_rectangle(0, 0, 20, 20, fill=hex_color, outline="")
 
         self.after(100, self.update_position)
+
+    def copy_color_to_clipboard(self):
+        hex_color = self.color_label.cget("text").split()[-1]
+        pyperclip.copy(hex_color)
 
 
 if __name__ == "__main__":
