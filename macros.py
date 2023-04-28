@@ -21,11 +21,13 @@ class Macros:
 
         keyboard.add_hotkey(self.work_key, lambda: self.buy())  # объявление горячей клавиши
 
-        self.work()  # запуск основного метода
+        keyboard.wait(self.stop_key)  # ожидание нажатия кнопки остановки
+        pag.alert('Выход из макроса.')
+        exit()
 
     def buy(self):
         while True:
-            # print(f"НАЧАЛО ЦИКЛА")
+            # print("НАЧАЛО ЦИКЛА")
             pag.moveTo(self.position_1[0], self.position_1[1], duration=self.delay / 4)  # переместить мышь на позицию 1
             # print("Курсор перемещён в 1 позицию")
             pag.mouseDown(button='left')  # нажать на левую кнопку мыши
@@ -46,15 +48,13 @@ class Macros:
             pag.press('y')  # нажать на клавишу "y"
             # print("Нажата кнопка Y")
             if keyboard.is_pressed(self.work_key):
-                while keyboard.is_pressed(self.work_key):
+                # print("Зажата рабочая кнопка")
+                pag.PAUSE = 2
+                # print("Зажата рабочая кнопка уже в течение 2 секунд")
+                if keyboard.is_pressed(self.work_key):
                     pag.alert('Цикл остановлен.')
-                    break
-                return
-
-    def work(self):
-        keyboard.wait(self.stop_key)
-        pag.alert('Выход из макроса.')
-        exit()
+                    # print("Команда остановки цикла")
+                    return
 
 
 if __name__ == "__main__":
