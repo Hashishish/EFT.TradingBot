@@ -11,8 +11,7 @@ class Macros:
         self.position_1 = 1870, 165  # Позиция с фильтром по цене
         self.position_2 = 2350, 240  # Позиция с кнопкой купить
         self.position_3 = 1585, 650  # Позиция с кнопкой "все"
-        self.lotPosition = 2477, 204  # Позиция с точкой для проверки лота
-        self.lotPosition_color = 177, 185, 189  # Цвет в формате RGB для проверяемой точки
+        self.lotPosition = 2307, 242  # Позиция с точкой для проверки лота
 
         self.work_key, self.stop_key = 'q', 'w'  # Клавиши управления
 
@@ -56,16 +55,19 @@ class Macros:
         while True:
             print("НАЧАЛО ЦИКЛА")
 
-            if pag.screenshot().getpixel(self.lotPosition) == self.lotPosition_color:  # Проверка на наличие лота
+            lot_color = pag.screenshot().getpixel(self.lotPosition)
+
+            print("Обновление списка")
+            self.update()  # Обновим список лотов
+
+            if pag.screenshot().getpixel(self.lotPosition) != lot_color:  # Проверка на наличие лота
                 print("Появился новый лот")
                 self.buy()  # Покупается первый лот из списка
 
-            self.update()  # Обновим список лотов
-
             if keyboard.is_pressed(self.work_key):
                 print("Зажата рабочая кнопка")
-                time.sleep(1)  # Ожидание нажатия продолжительностью 1 секунду
-                print("Зажата рабочая кнопка уже в течение 1 секунды")
+                time.sleep(0.5)  # Ожидание нажатия продолжительностью 0.5 секунд
+                print("Зажата рабочая кнопка уже в течение 0.5 секунд")
 
                 if keyboard.is_pressed(self.work_key):
                     pag.alert('Цикл остановлен.')
