@@ -1,7 +1,9 @@
 import pyautogui as pag
 import keyboard
+from colorama import init, Fore, Style
 
 pag.FAILSAFE = False  # НЕ ТРОГАТЬ!
+init()
 
 
 class Macros:
@@ -19,56 +21,50 @@ class Macros:
         pag.alert('Выход из макроса.')
         exit()
 
-    def click(self):
-        pag.sleep(self.click_delay)  # Задержка в нажатии
-        pag.mouseDown(button='left')  # Нажать на левую кнопку мыши
-        print("Левая кнопка мыши нажата")
-        pag.sleep(self.hold_time)  # Задержка в отжатии
-        pag.mouseUp(button='left')  # Отпустить левую кнопку мыши
-        print("Левая кнопка мыши отпущена")
-
     def update(self):
-        pag.moveTo(pag.locateCenterOnScreen('Images/Buttons/cost_button.png', confidence=0.8), duration=self.delay)
-        print("Курсор перемещён в 1 позицию")
-        pag.sleep(self.click_delay * 4)  # Задержка в обновлении
-        self.click()
-        pag.sleep(self.click_delay * 2)  # Задержка для обработки обновлённой информации
+        print(Fore.YELLOW + "Обновление..." + Style.RESET_ALL)
+        pag.click(pag.locateCenterOnScreen('Images/Buttons/cost_button.png', confidence=0.8), duration=self.delay / 2)
+        print(Fore.GREEN + "Обновление...Done" + Style.RESET_ALL)
 
     def buy(self, button_center, full=False):
-        pag.moveTo(button_center, duration=self.delay)  # Переместить мышь на позицию 2
-        self.click()
+        pag.click(button_center, duration=self.delay / 2)  # Нажатие на кнопку
 
         pag.sleep(self.delay * 2)
 
         if full:
-            pag.moveTo(pag.locateCenterOnScreen('Images/Buttons/full_button.png', confidence=0.8), duration=self.delay)
-            self.click()
+            print(Fore.YELLOW + "ВСЕ..." + Style.RESET_ALL)
+            pag.click(pag.locateCenterOnScreen('Images/Buttons/full_button.png', confidence=0.8), duration=self.delay)
+            print(Fore.GREEN + "ВСЕ...Done" + Style.RESET_ALL)
 
-        pag.sleep(self.delay / 2)  # Задержка перед нажатием клавиши "y"
+        pag.sleep(self.delay)  # Задержка перед нажатием клавиши "y"
         pag.press('y')  # Нажать на клавишу "y"
         print("Нажата кнопка Y")
 
     def work(self):
         while True:
-            print("НАЧАЛО ЦИКЛА")
 
-            print("Обновление списка")
             self.update()  # Обновим список лотов
 
-            button_center = pag.locateCenterOnScreen('Images/Buttons/buy_button.png', confidence=0.5)
+            pag.sleep(self.delay * 5)
+
+            print(Fore.YELLOW + "Ищем кнопку 'Купить'..." + Style.RESET_ALL)
+            button_center = pag.locateCenterOnScreen('Images/Buttons/buy_button.png', confidence=0.6)
+            print(Fore.CYAN + f"Полученные координаты: {button_center}" + Style.RESET_ALL)
 
             if button_center:  # Проверка на наличие лота
-                print("Начинается покупка")
+                print(Fore.GREEN + "Начинается покупка" + Style.RESET_ALL)
                 self.buy(button_center)  # Покупается лот из списка
+            else:
+                print(Fore.RED + "Кнопка 'Купить' не найдена" + Style.RESET_ALL)
 
             if keyboard.is_pressed(self.work_key):
-                print("Зажата рабочая кнопка")
+                print(Fore.CYAN + "Зажата рабочая кнопка" + Style.RESET_ALL)
                 pag.sleep(0.1)  # Ожидание зажатия
-                print("Зажата рабочая кнопка")
+                print(Fore.GREEN + "Зажата рабочая кнопка" + Style.RESET_ALL)
 
                 if keyboard.is_pressed(self.work_key):
                     pag.alert('Цикл остановлен.')
-                    print("Команда остановки цикла")
+                    print(Fore.RED + "Цикл остановлен." + Style.RESET_ALL)
                     return
 
 
