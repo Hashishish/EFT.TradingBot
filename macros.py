@@ -1,5 +1,7 @@
 import pyautogui as pag
 import keyboard
+import threading
+from datetime import datetime as time, timedelta as delta
 
 # from colorama import init, Fore, Style
 
@@ -18,18 +20,37 @@ class Macros:
         self.click_delay = 0.1  # Задержка перед кликом в секундах
         self.hold_time = 0.03  # Время удержания в секундах
 
-        keyboard.add_hotkey(self.work_key, lambda: self.work())  # Объявление горячей клавиши
+        self.count = 0
+
+        # Объявление горячей клавиши
+        keyboard.add_hotkey(self.work_key,
+                            lambda: self.work(pag.prompt("Введите количество успешных покупок, ед.: "),
+                                              pag.prompt(
+                                                  "Введите продолжительность по времени для работы макроса, мин.: ")))
 
         keyboard.wait(self.stop_key)  # Ожидание нажатия кнопки остановки
         pag.alert('Выход из макроса.')
         exit()
 
-    def update(self):
+    def check_purchase(self, check_time, pause=5):  # Метод проверки покупки
+        def check(delay=pause):  # Функция, которая проверяет, появилось ли уведомление о покупке
+            while not pag.locateCenterOnScreen('Images/Notices/purchase_notice.png') and (
+                    time.now() - check_time) < delta(seconds=delay):
+                if pag.locateCenterOnScreen('Images/Notices/purchase_notice.png'):  # Поиск уведомления
+                    self.count += 1
+                    return
+                pag.sleep(self.delay)
+
+        checker = threading.Thread(target=check())
+        checker.start()  # Запуск нового потока
+        checker.join()  # Ожидание результата потока и его завершение
+
+    def update(self):  # Метод обновления
         # print(Fore.YELLOW + "Обновление..." + Style.RESET_ALL)
         pag.click(pag.locateCenterOnScreen('Images/Buttons/cost_button.png', confidence=0.8), duration=self.click_delay)
         # print(Fore.GREEN + "Обновление...Done" + Style.RESET_ALL)
 
-    def buy(self, button_center, full=False):
+    def buy(self, button_center, full=False):  # Метод покупки
         pag.click(button_center, duration=self.click_delay)  # Нажатие на кнопку
 
         if full:
@@ -43,7 +64,9 @@ class Macros:
         keyboard.press_and_release('y')  # Нажать на клавишу "y"
         # print("Нажата кнопка Y")
 
-    def work(self):
+    def work(self, target_count, duration):
+        target_time = time.now() + delta(duration)  # Создаётся время окончания работы макроса
+        self.count = 0
         while True:
 
             pag.sleep(self.delay * 4)
@@ -55,14 +78,22 @@ class Macros:
             if button_center:  # Проверка на наличие лота
                 # print(Fore.GREEN + "Начинается покупка" + Style.RESET_ALL)
                 self.buy(button_center)  # Покупается лот из списка
-
+                self.check_purchase(time.now())  # Проверяется, случилась ли удачная покупка
             else:
                 pass
                 # print(Fore.RED + "Кнопка 'Купить' не найдена" + Style.RESET_ALL)
 
             self.update()  # Обновление списка лотов
 
-            if keyboard.is_pressed(self.work_key):
+            if self.count != target_count:  # Остановка макроса при достижении заданного количества успешных покупок
+                pag.alert('Цикл остановлен.\nДостигнут лимит по покупкам.\n' + str(time.now()))
+                return
+
+            if time.now() != target_time:  # Остановка макроса при истечении заданной продолжительности работы
+                pag.alert('Цикл остановлен.\nВремя вышло.' + str(time.now()))
+                return
+
+            if keyboard.is_pressed(self.work_key):  # Остановка макроса при зажатии пользователем рабочей кнопки
                 # print(Fore.CYAN + "Зажата рабочая кнопка" + Style.RESET_ALL)
                 pag.sleep(0.5)  # Ожидание зажатия
                 # print(Fore.GREEN + "Зажата рабочая кнопка" + Style.RESET_ALL)
