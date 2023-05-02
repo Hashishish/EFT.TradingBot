@@ -19,6 +19,7 @@ class Macros:
         self.count = 0
 
         self.full_buy = fb
+        self.event_stop = False
         logger.debug("Базовые переменные объявлены.")
 
         # Объявление горячей клавиши
@@ -28,10 +29,17 @@ class Macros:
                                                 pag.prompt("Введите продолжительность работы макроса, мин.: ")),
                                      logger.debug("Цикл запущен по горячей клавише.")))
 
+        keyboard.add_hotkey(self.key_stop, lambda: (
+            logger.debug(f"Сработка горячей клавиши {self.key_stop}."), self.stop(),
+            logger.debug("Запуск одной покупки по горячей клавише.")))
+
         keyboard.add_hotkey(self.key_work, lambda: (
-            logger.debug(f"Сработка горячей клавиши {self.key_cycle}."), self.work(),
+            logger.debug(f"Сработка горячей клавиши {self.key_work}."), self.work(),
             logger.debug("Запуск одной покупки по горячей клавише.")))
         logger.debug("Горячие клавиши обозначены.")
+
+    def stop(self):
+        self.event_stop = True
 
     def validate(self, var: any) -> int:
         try:
@@ -44,13 +52,12 @@ class Macros:
 
     def check_purchase(self, check_time: datetime.datetime, pause: int = 5):  # Метод проверки покупки
         def check(delay=pause):  # Функция, которая проверяет, появилось ли уведомление о покупке
-            while not pag.locateCenterOnScreen('Images/Notices/notice_purchase.png') and (
-                    time.now() - check_time) < delta(seconds=delay):
+            target_time = delta(seconds=delay)
+            while (time.now() - check_time) < target_time:  # TODO: переделать обработчик на покупку множества
                 if pag.locateCenterOnScreen('Images/Notices/notice_purchase.png'):  # Поиск уведомления
                     logger.info("Покупка подтверждена.")
                     self.count += 1
                     return
-                pag.sleep(self.delay)
 
         checker = threading.Thread(target=check)
         logger.debug("Поток с циклом проверки на наличе уведомления Объявлен.")
@@ -119,7 +126,8 @@ class Macros:
         self.count = 0
         target_time = time.now() + delta(validated_duration)  # Создаётся время окончания работы макроса
         logger.info(f"Время окончания работы макроса {target_time}")
-        while not keyboard.is_pressed(self.key_stop):
+        self.event_stop = False
+        while not self.event_stop:
             logger.debug(f"Подтверждённых покупок на начало выполнения цикла: {self.count}")
 
             pag.sleep(self.delay * 4)

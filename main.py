@@ -12,7 +12,29 @@ class Window(Macros):
         super().__init__(tk.BooleanVar(value=True))
         self.master = master
         master.title("Настройки")
-        self.event_stop = threading.Event()  # Событие для остановки цикла
+        keyboard.clear_all_hotkeys()
+        logger.debug("Горячие клавиши сброшены.")
+
+        # Горячая клавиша на начало работы цикла
+        keyboard.add_hotkey(self.key_cycle, lambda: (
+            logger.debug(f"Сработка горячей клавиши {self.key_cycle}."), self.start(),
+            logger.debug("Цикл ЗАПУЩЕН по горячей клавише.")))
+
+        # Горячая клавиша на завершение работы цикла
+        keyboard.add_hotkey(self.key_stop, lambda: (
+            logger.debug(f"Сработка горячей клавиши {self.key_stop}."), self.stop(),
+            logger.debug("Цикл ОСТАНОВЛЕН по горячей клавише.")))
+
+        # Горячая клавиша на единовременный запуск итерации
+        keyboard.add_hotkey(self.key_work, lambda: (
+            logger.debug(f"Сработка горячей клавиши {self.key_work}."), self.work(),
+            logger.debug("Запуск одной покупки по горячей клавише.")))
+
+        # Горячая клавиша на единовременный запуск итерации
+        keyboard.add_hotkey(self.key_exit, lambda: (
+            logger.debug(f"Сработка горячей клавиши {self.key_exit}."), self.close(),
+            logger.debug("Запуск одной покупки по горячей клавише.")))
+        logger.debug("Горячие клавиши обозначены для графического интерфейса.")
 
         # Создаём названия
         self.label_check_full_buy = tk.Label(master, text="Покупать ли все предметы в лоте?")
@@ -57,18 +79,27 @@ class Window(Macros):
 
     def stop(self):
         logger.debug("Цикл остановлен по графической кнопке.")
-        self.event_stop.set()
+        self.event_stop = True
+        pag.sleep(self.delay * 2)
 
         # Переключаем положения кнопок
         self.button_stop.config(state="disabled")
         self.button_start.config(state="normal")
 
+    def cycle(self, target_count, duration):
+        if not self.event_stop:
+            return self.stop()
+        super().cycle(target_count, duration)
+
+    def close(self):
+        logger.debug("Завершение цикла и закрытие окна.")
+        self.stop()
+        root.destroy()
+        sys.exit(0)
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     my_window = Window(root)
-    root.protocol("WM_DELETE_WINDOW",
-                  lambda: (logger.debug("Закрытие окна и завершение кода."), root.destroy(), sys.exit(0)))
+    root.protocol("WM_DELETE_WINDOW", lambda: my_window.close())
     root.mainloop()
-    keyboard.wait(my_window.key_exit)  # Ожидание нажатия кнопки остановки
-    pag.alert('Выход из макроса.')
