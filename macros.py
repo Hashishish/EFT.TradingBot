@@ -9,33 +9,38 @@ pag.FAILSAFE = False  # НЕ ТРОГАТЬ!
 
 
 class Macros:
-    def __init__(self):
+    def __init__(self, fb):
         # Установка переменных
         self.key_work, self.key_stop, self.key_cycle = 'q', 'w', 'e'  # Клавиши управления
 
         self.delay = 0.2  # Базовая задержка в секундах
         self.click_delay = 0.1  # Задержка перед кликом в секундах
-        self.hold_time = 0.03  # Время удержания в секундах
 
         self.count = 0
 
-        self.full_buy = False
+        self.full_buy = fb
         logger.debug("Базовые переменные объявлены.")
 
         # Объявление горячей клавиши
         keyboard.add_hotkey(self.key_cycle,
                             lambda: (logger.debug(f"Сработка горячей клавиши {self.key_cycle}."),
                                      self.cycle(pag.prompt("Введите количество успешных покупок, ед.: "),
-                                                pag.prompt("Введите продолжительность работы макроса, мин.: "))),
-                            logger.debug("Цикл запущен по горячей клавише."))
+                                                pag.prompt("Введите продолжительность работы макроса, мин.: ")),
+                                     logger.debug("Цикл запущен по горячей клавише.")))
 
         keyboard.add_hotkey(self.key_work, lambda: (
             logger.debug(f"Сработка горячей клавиши {self.key_cycle}."), self.work(),
             logger.debug("Запуск одной покупки по горячей клавише.")))
         logger.debug("Горячие клавиши обозначены.")
 
-    def validate(self):  # TODO: доделать проверку на верность введённых данных, а из гуи убрать.
-        pass
+    def validate(self, var: any) -> int:
+        try:
+            var_int = int(var)
+            logger.info(f"Значение {var} преобразовано в целочисленное.")
+            return var_int
+        except ValueError:
+            logger.debug(f"Значение '{var}' не может быть преобразовано в целочисленное.")
+            return pag.alert("Задано неверное значение!")
 
     def check_purchase(self, check_time: datetime.datetime, pause: int = 5):  # Метод проверки покупки
         def check(delay=pause):  # Функция, которая проверяет, появилось ли уведомление о покупке
@@ -47,7 +52,7 @@ class Macros:
                     return
                 pag.sleep(self.delay)
 
-        checker = threading.Thread(target=check())
+        checker = threading.Thread(target=check)
         logger.debug("Поток с циклом проверки на наличе уведомления Объявлен.")
         checker.start()  # Запуск нового потока
         logger.debug("Поток с циклом проверки на наличе уведомления Запущен.")
@@ -60,7 +65,8 @@ class Macros:
             pag.click(pag.locateCenterOnScreen('Images/Buttons/button_cost_up.png', confidence=0.8),
                       duration=self.click_delay)
             logger.info("Обновлено по cost_up.")
-        except:
+        except Exception as e:
+            logger.debug(e)
             try:
                 logger.debug("Обновление по cost_down.")
                 pag.click(pag.locateCenterOnScreen('Images/Buttons/button_cost_down.png', confidence=0.8),
@@ -104,17 +110,16 @@ class Macros:
             logger.info("Кнопка 'Купить' не найдена.")
 
     @logger.catch
-    def cycle(self, target_count: int, duration: int):
-        logger.debug(f"Целевое количество успешных покупок: {target_count}, Продолжительность работы: {duration}.")
-        if not self.full_buy:
-            logger.debug(f"Переменная полного закупа {self.full_buy}.")
-            self.full_buy = pag.confirm("Покупать все единицы товара в лоте?")
-            logger.info(f"Переменная полного закупа от пользователя {self.full_buy}.")
+    def cycle(self, target_count, duration):
+        validated_target_count = self.validate(target_count)
+        validated_duration = self.validate(duration)
+        logger.debug(f"Целевое количество успешных покупок: {validated_target_count}")
+        logger.debug(f"Продолжительность работы: {validated_duration}.")
 
         self.count = 0
-        target_time = time.now() + delta(duration)  # Создаётся время окончания работы макроса
+        target_time = time.now() + delta(validated_duration)  # Создаётся время окончания работы макроса
         logger.info(f"Время окончания работы макроса {target_time}")
-        while not keyboard.is_pressed(self.key_work):
+        while not keyboard.is_pressed(self.key_cycle):
             logger.debug(f"Подтверждённых покупок на начало выполнения цикла: {self.count}")
 
             pag.sleep(self.delay * 4)
@@ -125,7 +130,7 @@ class Macros:
             logger.debug("Запуск метода 'update'.")
             self.update()
 
-            if self.count >= target_count:  # Остановка макроса при достижении заданного количества успешных покупок
+            if self.count >= validated_target_count:  # Остановка цикла при достижении заданного кол-ва успешных покупок
                 pag.alert('Цикл остановлен.\nДостигнут лимит по покупкам.\n' + str(time.now()))
                 logger.info("Цикл остановлен. Достигнут лимит по покупкам. " + str(time.now()))
                 return
@@ -140,6 +145,6 @@ class Macros:
 
 
 if __name__ == "__main__":
-    macros = Macros()
+    macros = Macros(pag.confirm("Покупать все единицы товара в лоте?"))
     keyboard.wait(macros.key_stop)  # Ожидание нажатия кнопки остановки
     pag.alert('Выход из макроса.')
