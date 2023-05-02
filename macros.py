@@ -11,7 +11,7 @@ pag.FAILSAFE = False  # НЕ ТРОГАТЬ!
 class Macros:
     def __init__(self, fb):
         # Установка переменных
-        self.key_work, self.key_stop, self.key_cycle = 'q', 'w', 'e'  # Клавиши управления
+        self.key_work, self.key_exit, self.key_cycle, self.key_stop = 'q', 'w', 'e', 'r'  # Клавиши управления
 
         self.delay = 0.2  # Базовая задержка в секундах
         self.click_delay = 0.1  # Задержка перед кликом в секундах
@@ -119,7 +119,7 @@ class Macros:
         self.count = 0
         target_time = time.now() + delta(validated_duration)  # Создаётся время окончания работы макроса
         logger.info(f"Время окончания работы макроса {target_time}")
-        while not keyboard.is_pressed(self.key_cycle):
+        while not keyboard.is_pressed(self.key_stop):
             logger.debug(f"Подтверждённых покупок на начало выполнения цикла: {self.count}")
 
             pag.sleep(self.delay * 4)
@@ -146,5 +146,5 @@ class Macros:
 
 if __name__ == "__main__":
     macros = Macros(pag.confirm("Покупать все единицы товара в лоте?"))
-    keyboard.wait(macros.key_stop)  # Ожидание нажатия кнопки остановки
+    keyboard.wait(macros.key_exit)  # Ожидание нажатия кнопки остановки
     pag.alert('Выход из макроса.')
