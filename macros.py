@@ -15,6 +15,7 @@ class Macros:
 
         self.delay = 0.2  # Базовая задержка в секундах
         self.click_delay = 0.1  # Задержка перед кликом в секундах
+        self.confidence = 0.8  # Точность поиска
 
         self.count = 0
 
@@ -47,8 +48,63 @@ class Macros:
             logger.info(f"Значение {var} преобразовано в целочисленное.")
             return var_int
         except ValueError:
-            logger.debug(f"Значение '{var}' не может быть преобразовано в целочисленное.")
+            logger.error(f"Значение '{var}' не может быть преобразовано в целочисленное.")
             return pag.alert("Задано неверное значение!")
+
+    def update(self):  # Метод обновления
+        try:
+            logger.debug("Обновление по cost_up.")
+            pag.click(pag.locateCenterOnScreen('Images/Buttons/button_cost_up.png', confidence=self.confidence),
+                      duration=self.click_delay)
+            logger.info("Обновлено по cost_up.")
+        except Exception as e:
+            logger.debug(e)
+            try:
+                logger.debug("Обновление по cost_down.")
+                pag.click(pag.locateCenterOnScreen('Images/Buttons/button_cost_down.png', confidence=self.confidence),
+                          duration=self.click_delay)
+                logger.info("Обновлено по cost_down.")
+            except Exception as e:
+                logger.debug(e)
+                logger.info("Кнопка обновления не найдена.")
+
+    def buy(self, button_center: tuple):  # Метод покупки
+        logger.debug(f"Кнопка по координатам: {button_center}.")
+        pag.click(button_center, duration=self.click_delay)  # Нажатие на кнопку
+        logger.info("Кнопка покупки нажата.")
+
+        if self.full_buy:
+            logger.debug("Покупка всех предметов в лоте.")
+            pag.sleep(self.delay)
+            pag.click(pag.locateCenterOnScreen('Images/Buttons/button_full.png', confidence=self.confidence),
+                      duration=self.click_delay)
+            logger.info("Выбраны все предметы в лоте.")
+
+        pag.sleep(self.delay)  # Задержка перед нажатием клавиши "y"
+        keyboard.press_and_release('y')  # Нажать на клавишу "y"
+        logger.info("Кнопка 'Y' была нажата.")
+
+    def error_catch(self):
+        try:
+            pag.locateCenterOnScreen('Images/Errors/error_out_of_place.png', confidence=self.confidence)
+            logger.error("НЕДОСТАТОЧНО МЕСТА.")
+            self.stop()
+        except:
+            try:
+                pag.locateCenterOnScreen('Images/Errors/error_not_all.png', confidence=self.confidence)
+                logger.info("Куплено СКОЛЬКО-ТО ед.")  # TODO: доделать обработку покупки не полной пачки предметов
+            except:
+                try:
+                    pag.locateCenterOnScreen('Images/Errors/error_not_enough.png', confidence=self.confidence)
+                    logger.error("НЕДОСТАТОЧНО СРЕДСТВ.")
+                    self.stop()
+                except:
+                    pass
+        finally:
+            try:
+                pag.click(pag.locateCenterOnScreen('Images/Buttons/button_ok.png'))
+            except:
+                logger.debug("Ошибок не обнаружено.")
 
     def check_purchase(self, check_time: datetime.datetime, pause: int = 5):  # Метод проверки покупки
         def check(delay=pause):  # Функция, которая проверяет, появилось ли уведомление о покупке
@@ -66,50 +122,19 @@ class Macros:
         checker.join()  # Ожидание результата потока и его завершение
         logger.debug("Поток с циклом проверки на наличе уведомления Завершён.")
 
-    def update(self):  # Метод обновления
-        try:
-            logger.debug("Обновление по cost_up.")
-            pag.click(pag.locateCenterOnScreen('Images/Buttons/button_cost_up.png', confidence=0.8),
-                      duration=self.click_delay)
-            logger.info("Обновлено по cost_up.")
-        except Exception as e:
-            logger.debug(e)
-            try:
-                logger.debug("Обновление по cost_down.")
-                pag.click(pag.locateCenterOnScreen('Images/Buttons/button_cost_down.png', confidence=0.8),
-                          duration=self.click_delay)
-                logger.info("Обновлено по cost_down.")
-            except Exception as e:
-                logger.debug(e)
-                logger.info("Кнопка обновления не найдена.")
-
-    def buy(self, button_center: tuple):  # Метод покупки
-        logger.debug(f"Кнопка по координатам: {button_center}.")
-        pag.click(button_center, duration=self.click_delay)  # Нажатие на кнопку
-        logger.info("Кнопка покупки нажата.")
-
-        if self.full_buy:
-            logger.debug("Покупка всех предметов в лоте.")
-            pag.sleep(self.delay)
-            pag.click(pag.locateCenterOnScreen('Images/Buttons/button_full.png', confidence=0.8),
-                      duration=self.click_delay)
-            logger.info("Выбраны все предметы в лоте.")
-
-        pag.sleep(self.delay)  # Задержка перед нажатием клавиши "y"
-        keyboard.press_and_release('y')  # Нажать на клавишу "y"
-        logger.info("Кнопка 'Y' была нажата.")
-
     @logger.catch
     def work(self):
 
         logger.debug("Поиск кнопки 'Купить'.")
-        button_center = pag.locateCenterOnScreen('Images/Buttons/button_buy.png', confidence=0.6)
+        button_center = pag.locateCenterOnScreen('Images/Buttons/button_buy.png', confidence=self.confidence - 0.2)
         logger.info(f"Полученные координаты: {button_center}")
 
         if button_center:  # Проверка на наличие лота
             logger.debug("Начинается покупка.")
             self.buy(button_center)  # Покупается лот из списка
             logger.info(f"Совершена покупка в {time.now()}.")
+            logger.debug("Начинается проверка на ошибки.")
+            self.error_catch()  # Проверка на ошибки
             logger.debug(f"Начинается проверка покупки от {time.now()}.")
             self.check_purchase(time.now())  # Проверяется, случилась ли удачная покупка
             logger.info("Проверка покупки запущена.")
@@ -130,7 +155,7 @@ class Macros:
         while not self.event_stop:
             logger.debug(f"Подтверждённых покупок на начало выполнения цикла: {self.count}")
 
-            pag.sleep(self.delay * 4)
+            pag.sleep(self.delay)
 
             logger.debug("Запуск метода 'work'.")
             self.work()

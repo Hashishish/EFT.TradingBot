@@ -65,6 +65,9 @@ class Window(Macros):
         self.button_start = tk.Button(master, text="Запустить цикл", command=lambda: self.start())
         self.button_start.grid(row=3, column=1)
 
+        # TODO: Сделать отображение количества успешных покупок в окне на последней строчке
+        # TODO: Сделать изменение пользователем точности поиска
+
     def start(self):
         logger.debug("Цикл запущен по графической кнопке.")
         target_count, duration = self.entry_quantity.get(), self.entry_duration.get()
@@ -78,7 +81,7 @@ class Window(Macros):
         self.button_start.config(state="disabled")
 
     def stop(self):
-        logger.debug("Цикл остановлен по графической кнопке.")
+        logger.debug("Цикл остановлен.")
         self.event_stop = True
         pag.sleep(self.delay * 2)
 
