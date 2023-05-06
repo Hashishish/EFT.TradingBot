@@ -39,8 +39,11 @@ class Macros:
             logger.debug("Запуск одной покупки по горячей клавише.")))
         logger.debug("Горячие клавиши обозначены.")
 
-    def stop(self):
+    # TODO: Сделать решение капчи
+
+    def stop(self, reason='stop'):
         self.event_stop = True
+        logger.info(f'СТОП. Причина: {reason}')
 
     def validate(self, var: any) -> int:
         try:
@@ -49,7 +52,7 @@ class Macros:
             return var_int
         except ValueError:
             logger.error(f"Значение '{var}' не может быть преобразовано в целочисленное.")
-            return pag.alert("Задано неверное значение!")
+            return pag.alert("Задан неверный формат чисел!")
 
     def update(self):  # Метод обновления
         try:
@@ -88,7 +91,7 @@ class Macros:
         try:
             pag.locateCenterOnScreen('Images/Errors/error_out_of_place.png', confidence=self.confidence)
             logger.error("НЕДОСТАТОЧНО МЕСТА.")
-            self.stop()
+            self.stop("НЕДОСТАТОЧНО МЕСТА.")
         except:
             try:
                 pag.locateCenterOnScreen('Images/Errors/error_not_all.png', confidence=self.confidence)
@@ -97,12 +100,13 @@ class Macros:
                 try:
                     pag.locateCenterOnScreen('Images/Errors/error_not_enough.png', confidence=self.confidence)
                     logger.error("НЕДОСТАТОЧНО СРЕДСТВ.")
-                    self.stop()
+                    self.stop("НЕДОСТАТОЧНО СРЕДСТВ.")
                 except:
-                    pass
+                    pass  # TODO: Сделать отслеживание капчи
         finally:
             try:
                 pag.click(pag.locateCenterOnScreen('Images/Buttons/button_ok.png'))
+                logger.debug("Нажата ОК.")
             except:
                 logger.debug("Ошибок не обнаружено.")
 
@@ -113,6 +117,7 @@ class Macros:
                 if pag.locateCenterOnScreen('Images/Notices/notice_purchase.png'):  # Поиск уведомления
                     logger.info("Покупка подтверждена.")
                     self.count += 1
+                    self._hook()
                     return
 
         checker = threading.Thread(target=check)
@@ -126,8 +131,8 @@ class Macros:
     def work(self):
 
         logger.debug("Поиск кнопки 'Купить'.")
-        button_center = pag.locateCenterOnScreen('Images/Buttons/button_buy.png', confidence=self.confidence - 0.2)
-        logger.info(f"Полученные координаты: {button_center}")
+        button_center = pag.locateCenterOnScreen('Images/Buttons/button_buy.png', confidence=self.confidence)
+        logger.debug(f"Полученные координаты: {button_center}")
 
         if button_center:  # Проверка на наличие лота
             logger.debug("Начинается покупка.")
@@ -165,16 +170,17 @@ class Macros:
 
             if self.count >= validated_target_count:  # Остановка цикла при достижении заданного кол-ва успешных покупок
                 pag.alert('Цикл остановлен.\nДостигнут лимит по покупкам.\n' + str(time.now()))
-                logger.info("Цикл остановлен. Достигнут лимит по покупкам. " + str(time.now()))
-                return
+                self.stop("Цикл остановлен. Достигнут лимит по покупкам. " + str(time.now()))
 
             if time.now() >= target_time:  # Остановка макроса при истечении заданной продолжительности работы
                 pag.alert('Цикл остановлен.\nВремя вышло.' + str(time.now()))
-                logger.info("Цикл остановлен. Время вышло. " + str(time.now()))
-                return
+                self.stop("Цикл остановлен. Время вышло. " + str(time.now()))
 
         pag.alert('Цикл остановлен.')
         logger.info("Цикл остановлен. " + str(time.now()))
+
+    def _hook(self, *args):
+        pass
 
 
 if __name__ == "__main__":
