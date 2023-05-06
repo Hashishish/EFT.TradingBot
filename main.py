@@ -44,39 +44,29 @@ class Window(Macros):
 
         # Создаём названия
         self.label_check_full_buy = tk.Label(master, text="Покупка всех предметов в лоте:")
-        self.label_check_full_buy.grid(row=0, column=0, sticky="W")
 
         self.label_quantity = tk.Label(master, text="Нужное количество успешных покупок, ед.:")
-        self.label_quantity.grid(row=1, column=0, sticky="W")
 
         self.label_duration = tk.Label(master, text="Длительность работы цикла, мин.:")
-        self.label_duration.grid(row=2, column=0, sticky="W")
 
         self.label_confidence = tk.Label(master, text="Точность поиска кнопок, д.ед.: \t\t0.")
-        self.label_confidence.grid(row=3, column=0, sticky="W")
 
         self.label_count_text = tk.Label(master, text="Текущее количество успешных покупок, ед.: ")
-        self.label_count_text.grid(row=4, column=0, sticky="E")
 
         # Создаём показатели
         self.check_full_buy = tk.Checkbutton(master, text="Покупать всё", onvalue=True, offvalue=False,
                                              variable=self.full_buy,
                                              command=lambda: logger.debug(f"Покупать все = {self.full_buy.get()}"))
-        self.check_full_buy.grid(row=0, column=1)
 
         self.entry_quantity = tk.Entry(self.master)
         self.entry_quantity.insert(0, str(5))
-        self.entry_quantity.grid(row=1, column=1)
 
         self.entry_duration = tk.Entry(self.master)
         self.entry_duration.insert(0, str(5))
-        self.entry_duration.grid(row=2, column=1)
 
         self.entry_confidence = tk.Entry(self.master, textvariable=self.sv_confidence)
-        self.entry_confidence.grid(row=3, column=1)
 
         self.label_count_variable = tk.Label(master, textvariable=self.sv_count)
-        self.label_count_variable.grid(row=4, column=1)
 
         # Создаём кнопки
         self.button_stop = tk.Button(master, text="Остановить цикл", command=lambda: self.stop("Графическая кнопка"))
@@ -84,6 +74,19 @@ class Window(Macros):
         self.button_stop.config(state="disabled")  # По умолчанию кнопка выключена
         self.button_start = tk.Button(master, text="Запустить цикл", command=lambda: self.start())
         self.button_start.grid(row=5, column=1, sticky="E")
+
+        # Располагаем элементы по сетке
+        self.label_check_full_buy.grid(row=0, column=0, sticky="W")
+        self.label_quantity.grid(row=1, column=0, sticky="W")
+        self.label_duration.grid(row=2, column=0, sticky="W")
+        self.label_confidence.grid(row=3, column=0, sticky="W")
+        self.label_count_text.grid(row=4, column=0, sticky="E")
+
+        self.check_full_buy.grid(row=0, column=1)
+        self.entry_quantity.grid(row=1, column=1)
+        self.entry_duration.grid(row=2, column=1)
+        self.entry_confidence.grid(row=3, column=1)
+        self.label_count_variable.grid(row=4, column=1)
 
     def confidence_change(self, *args):
         now = self.sv_confidence.get()
