@@ -9,7 +9,7 @@ from loguru import logger
 
 class Window(Macros):
     def __init__(self, master):
-        super().__init__(tk.BooleanVar(value=True))
+        super().__init__(True)
         self.master = master
         master.title("Настройки")
         keyboard.clear_all_hotkeys()
@@ -42,21 +42,20 @@ class Window(Macros):
 
         self.sv_count = tk.StringVar(value=str(self.count))
 
+        self.b_full_buy = tk.BooleanVar(value=self.full_buy)
+
         # Создаём названия
         self.label_check_full_buy = tk.Label(master, text="Покупка всех предметов в лоте:")
-
         self.label_quantity = tk.Label(master, text="Нужное количество успешных покупок, ед.:")
-
         self.label_duration = tk.Label(master, text="Длительность работы цикла, мин.:")
-
         self.label_confidence = tk.Label(master, text="Точность поиска кнопок, д.ед.: \t\t0.")
-
         self.label_count_text = tk.Label(master, text="Текущее количество успешных покупок, ед.: ")
 
         # Создаём показатели
         self.check_full_buy = tk.Checkbutton(master, text="Покупать всё", onvalue=True, offvalue=False,
-                                             variable=self.full_buy,
-                                             command=lambda: logger.debug(f"Покупать все = {self.full_buy.get()}"))
+                                             variable=self.b_full_buy,
+                                             command=lambda: (logger.debug(f"Покупать всё = {self.b_full_buy.get()}"),
+                                                              self.full_buy_change()))
 
         self.entry_quantity = tk.Entry(self.master)
         self.entry_quantity.insert(0, str(5))
@@ -102,6 +101,9 @@ class Window(Macros):
         else:
             pass
 
+    def full_buy_change(self, *args):
+        self.full_buy = self.b_full_buy.get()
+
     def start(self):
         logger.debug("Цикл запущен по графической кнопке.")
         target_count, duration = self.entry_quantity.get(), self.entry_duration.get()
@@ -122,10 +124,10 @@ class Window(Macros):
         self.button_stop.config(state="disabled")
         self.button_start.config(state="normal")
 
-    def cycle(self, target_count, duration):  # Переопределение для недопущения запуска при остановленном положении
-        if not self.event_stop:
-            return self.stop()
-        super().cycle(target_count, duration)
+    # def cycle(self, target_count, duration):  # Переопределение для недопущения запуска при остановленном положении
+    #     if not self.event_stop:
+    #         return self.stop()
+    #     super().cycle(target_count, duration)
 
     def close(self):
         logger.debug("Завершение цикла и закрытие окна.")
@@ -139,6 +141,7 @@ class Window(Macros):
 
 if __name__ == "__main__":
     root = tk.Tk()
+    root.attributes('-topmost', True)
     my_window = Window(root)
     root.protocol("WM_DELETE_WINDOW", lambda: my_window.close())
     root.mainloop()
