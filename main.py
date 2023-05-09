@@ -1,3 +1,5 @@
+# v1
+
 import threading
 import pyautogui as pag
 import keyboard
